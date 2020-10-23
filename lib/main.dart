@@ -47,9 +47,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   static const EXPANDED_BOX_PADDING = 16.0;
   static const ANIMATION_CURVE = Curves.easeInOut;
   static const ANIMATION_DURATION = Duration(milliseconds: 350);
+
   var DOMAIN_REGEX =
       RegExp(r"^((?!-)[a-zA-Z0-9-]{0,62}[a-zA-Z0-9]\.)+([a-zA-Z]{2,63})$");
 
+  bool _isFocused = false;
   ScrollController _scrollController;
   List<Entry> _scrollItems;
   Entry _currentItem;
@@ -174,10 +176,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       isThirdNextItem =
           _thirdNextItem != null && _scrollItems[index].id == _thirdNextItem.id;
 
-      isFourthPreviousItem = _thirdPreviousItem != null &&
-          _scrollItems[index].id == _thirdPreviousItem.id;
+      isFourthPreviousItem = _fourthPreviousItem != null &&
+          _scrollItems[index].id == _fourthPreviousItem.id;
       isFourthNextItem = _fourthNextItem != null &&
           _scrollItems[index].id == _fourthNextItem.id;
+
+      print('is focused: $_isFocused');
 
       return GestureDetector(
         onTap: () {
@@ -192,6 +196,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                     : EXPANDED_BOX_HEIGHT);
 
             if (isAlreadyFocused) {
+              _isFocused = false;
               _currentItem = null;
               _nextItem = null;
               _previousItem = null;
@@ -202,6 +207,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               _fourthNextItem = null;
               _fourthPreviousItem = null;
             } else {
+              _isFocused = true;
               _currentItem = _scrollItems[index];
 
               _nextItem = _scrollItems.length > index + 1
@@ -250,40 +256,44 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           ),
           height: isCurrentItem
               ? _focusedListViewHeights[_scrollItems[index].id]
-              : isSecondPreviousItem ||
-                      isSecondNextItem ||
-                      isThirdPreviousItem ||
-                      isThirdNextItem ||
-                      isFourthPreviousItem ||
-                      isFourthNextItem
-                  ? NORMAL_BOX_HEIGHT * 0.5
-                  : isPreviousItem || isNextItem || _currentItem != null
-                      ? NORMAL_BOX_HEIGHT * .75
+              : isPreviousItem || isNextItem
+                  ? NORMAL_BOX_HEIGHT * .75
+                  : isSecondPreviousItem ||
+                          isSecondNextItem ||
+                          isThirdPreviousItem ||
+                          isThirdNextItem ||
+                          isFourthPreviousItem ||
+                          isFourthNextItem ||
+                          _isFocused
+                      ? NORMAL_BOX_HEIGHT * 0.5
                       : NORMAL_BOX_HEIGHT,
           margin: EdgeInsets.only(
-            top:
-                NORMAL_BOX_PADDING, // isCurrentItem ? EXPANDED_BOX_PADDING : NORMAL_BOX_PADDING,
-            bottom:
-                NORMAL_BOX_PADDING, // isCurrentItem ? EXPANDED_BOX_PADDING : NORMAL_BOX_PADDING,
-            left: isFourthNextItem || isFourthPreviousItem
-                ? EXPANDED_BOX_PADDING * 4
-                : isThirdNextItem || isThirdPreviousItem
-                    ? EXPANDED_BOX_PADDING * 3
-                    : isSecondNextItem || isSecondPreviousItem
-                        ? EXPANDED_BOX_PADDING * 2
-                        : isPreviousItem || isNextItem
-                            ? EXPANDED_BOX_PADDING
-                            : 0,
-            right: isFourthNextItem || isFourthPreviousItem
-                ? EXPANDED_BOX_PADDING * 4
-                : isThirdNextItem || isThirdPreviousItem
-                    ? EXPANDED_BOX_PADDING * 3
-                    : isSecondNextItem || isSecondPreviousItem
-                        ? EXPANDED_BOX_PADDING * 2
-                        : isPreviousItem || isNextItem
-                            ? EXPANDED_BOX_PADDING
-                            : 0,
-          ),
+              top:
+                  NORMAL_BOX_PADDING, // isCurrentItem ? EXPANDED_BOX_PADDING : NORMAL_BOX_PADDING,
+              bottom:
+                  NORMAL_BOX_PADDING, // isCurrentItem ? EXPANDED_BOX_PADDING : NORMAL_BOX_PADDING,
+              left: isPreviousItem || isNextItem
+                  ? EXPANDED_BOX_PADDING
+                  : isSecondNextItem || isSecondPreviousItem
+                      ? EXPANDED_BOX_PADDING * 2
+                      : isThirdNextItem || isThirdPreviousItem
+                          ? EXPANDED_BOX_PADDING * 3
+                          : isFourthNextItem ||
+                                  isFourthPreviousItem ||
+                                  (_isFocused && !isCurrentItem)
+                              ? EXPANDED_BOX_PADDING * 4
+                              : NORMAL_BOX_PADDING,
+              right: isPreviousItem || isNextItem
+                  ? EXPANDED_BOX_PADDING
+                  : isSecondNextItem || isSecondPreviousItem
+                      ? EXPANDED_BOX_PADDING * 2
+                      : isThirdNextItem || isThirdPreviousItem
+                          ? EXPANDED_BOX_PADDING * 3
+                          : isFourthNextItem ||
+                                  isFourthPreviousItem ||
+                                  (_isFocused && !isCurrentItem)
+                              ? EXPANDED_BOX_PADDING * 4
+                              : NORMAL_BOX_PADDING),
           child: Center(
               child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
