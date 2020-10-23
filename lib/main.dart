@@ -35,8 +35,9 @@ class Entry {
   String hostName = 'Frans_iP11pMx';
   String dateTime = '13:04 EDT';
   String macAddress = '80:32:04:5b:7a:c3';
+  bool isBlocked;
 
-  Entry(this.id, this.domainName);
+  Entry(this.id, this.domainName, this.isBlocked);
 }
 
 class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
@@ -80,7 +81,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     _scrollItems = [];
     for (var i = 0; i < 24; i++) {
       var randomInteger = Random().nextInt(_subdomains.length);
-      _scrollItems.add(Entry(i, _subdomains[randomInteger]));
+      _scrollItems
+          .add(Entry(i, _subdomains[randomInteger], Random().nextBool()));
     }
 
     // setup db of Ids to Heights
@@ -154,10 +156,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           });
         },
         child: AnimatedContainer(
-          duration: ANIMATION_DURATION * 0.8,
+          duration: ANIMATION_DURATION * 1.8,
           curve: ANIMATION_CURVE,
           decoration: BoxDecoration(
-            color: Colors.amber,
+            color: entry.isBlocked ? Colors.red : Colors.green,
             // border: Border.all(
             //     color: Colors.black, style: BorderStyle.solid, width: 1.0,
             // )
