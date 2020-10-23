@@ -108,7 +108,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     _scrollController = ScrollController(); // it was easy :)
   }
 
-  Widget domainText(String text) {
+  Widget domainText(Entry entry) {
+    String text = entry.domainName;
+
+    // let's focus on secondary items
+    var smallFontSize = _isFocused && _currentItem.id != entry.id ? 10.0 : 18.0;
+    var largeFontSize = _isFocused && _currentItem.id != entry.id ? 14.0 : 28.0;
+
     Iterable<Match> matches = DOMAIN_REGEX.allMatches(text);
     if (matches == null || matches.length == 0) {
       print('Invalid domain: $text');
@@ -125,24 +131,35 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     var tld = matches.elementAt(0).group(2);
     var domainAndTld = '$domain$tld';
 
+    // var fontSize = _
     var prefix = matches.elementAt(0).group(0).replaceAll(domainAndTld, '');
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.baseline,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text(prefix,
+        AnimatedDefaultTextStyle(
+          curve: ANIMATION_CURVE,
+          duration: ANIMATION_DURATION,
+          style: TextStyle(fontSize: smallFontSize),
+          child: Text(prefix,
+              style: TextStyle(
+                fontWeight: FontWeight.w100,
+                color: Colors.white,
+              )),
+        ),
+        AnimatedDefaultTextStyle(
+          curve: ANIMATION_CURVE,
+          duration: ANIMATION_DURATION,
+          style: TextStyle(fontSize: largeFontSize),
+          child: Text(
+            domainAndTld,
             style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w100,
-              color: Colors.white,
-            )),
-        Text(domainAndTld,
-            style: TextStyle(
-              fontSize: 28,
               fontWeight: FontWeight.w200,
               color: Colors.white,
-            )),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -318,7 +335,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                     bottom: isSecondNextItem || isSecondPreviousItem ? 4 : 16),
                 child: Center(
                   child: domainText(
-                    entry.domainName,
+                    entry,
                   ),
                 ),
               ),
