@@ -55,8 +55,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   Entry _currentItem;
   Entry _nextItem;
   Entry _secondNextItem;
+  Entry _thirdNextItem;
+  Entry _fourthNextItem;
+
   Entry _previousItem;
   Entry _secondPreviousItem;
+  Entry _thirdPreviousItem;
+  Entry _fourthPreviousItem;
 
   List<String> _subdomains = [
     'sub1.donkeykong.com',
@@ -148,16 +153,31 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       bool isCurrentItem = false;
       bool isSecondPreviousItem = false;
       bool isSecondNextItem = false;
+      bool isThirdPreviousItem = false;
+      bool isThirdNextItem = false;
+      bool isFourthPreviousItem = false;
+      bool isFourthNextItem = false;
 
       isCurrentItem =
           _currentItem != null && _scrollItems[index].id == _currentItem.id;
       isPreviousItem =
           _previousItem != null && _scrollItems[index].id == _previousItem.id;
       isNextItem = _nextItem != null && _scrollItems[index].id == _nextItem.id;
-      isSecondNextItem = _secondNextItem != null &&
-          _scrollItems[index].id == _secondNextItem.id;
+
       isSecondPreviousItem = _secondPreviousItem != null &&
           _scrollItems[index].id == _secondPreviousItem.id;
+      isSecondNextItem = _secondNextItem != null &&
+          _scrollItems[index].id == _secondNextItem.id;
+
+      isThirdPreviousItem = _thirdPreviousItem != null &&
+          _scrollItems[index].id == _thirdPreviousItem.id;
+      isThirdNextItem =
+          _thirdNextItem != null && _scrollItems[index].id == _thirdNextItem.id;
+
+      isFourthPreviousItem = _thirdPreviousItem != null &&
+          _scrollItems[index].id == _thirdPreviousItem.id;
+      isFourthNextItem = _fourthNextItem != null &&
+          _scrollItems[index].id == _fourthNextItem.id;
 
       return GestureDetector(
         onTap: () {
@@ -177,17 +197,30 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               _previousItem = null;
               _secondNextItem = null;
               _secondPreviousItem = null;
+              _thirdNextItem = null;
+              _thirdPreviousItem = null;
+              _fourthNextItem = null;
+              _fourthPreviousItem = null;
             } else {
               _currentItem = _scrollItems[index];
+
               _nextItem = _scrollItems.length > index + 1
                   ? _scrollItems[index + 1]
                   : null;
               _secondNextItem = _scrollItems.length > index + 2
                   ? _scrollItems[index + 2]
                   : null;
+              _thirdNextItem = _scrollItems.length > index + 3
+                  ? _scrollItems[index + 3]
+                  : null;
+              _fourthNextItem = _scrollItems.length > index + 4
+                  ? _scrollItems[index + 4]
+                  : null;
 
               _previousItem = index > 0 ? _scrollItems[index - 1] : null;
               _secondPreviousItem = index > 1 ? _scrollItems[index - 2] : null;
+              _thirdPreviousItem = index > 2 ? _scrollItems[index - 3] : null;
+              _fourthPreviousItem = index > 3 ? _scrollItems[index - 4] : null;
             }
           });
         },
@@ -217,9 +250,14 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           ),
           height: isCurrentItem
               ? _focusedListViewHeights[_scrollItems[index].id]
-              : isSecondPreviousItem || isSecondNextItem
+              : isSecondPreviousItem ||
+                      isSecondNextItem ||
+                      isThirdPreviousItem ||
+                      isThirdNextItem ||
+                      isFourthPreviousItem ||
+                      isFourthNextItem
                   ? NORMAL_BOX_HEIGHT * 0.5
-                  : isPreviousItem || isNextItem
+                  : isPreviousItem || isNextItem || _currentItem != null
                       ? NORMAL_BOX_HEIGHT * .75
                       : NORMAL_BOX_HEIGHT,
           margin: EdgeInsets.only(
@@ -227,16 +265,24 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 NORMAL_BOX_PADDING, // isCurrentItem ? EXPANDED_BOX_PADDING : NORMAL_BOX_PADDING,
             bottom:
                 NORMAL_BOX_PADDING, // isCurrentItem ? EXPANDED_BOX_PADDING : NORMAL_BOX_PADDING,
-            left: (isSecondNextItem || isSecondPreviousItem)
-                ? EXPANDED_BOX_PADDING * 2
-                : isPreviousItem || isNextItem
-                    ? EXPANDED_BOX_PADDING
-                    : 0,
-            right: isSecondNextItem || isSecondPreviousItem
-                ? EXPANDED_BOX_PADDING * 2
-                : isPreviousItem || isNextItem
-                    ? EXPANDED_BOX_PADDING
-                    : 0,
+            left: isFourthNextItem || isFourthPreviousItem
+                ? EXPANDED_BOX_PADDING * 4
+                : isThirdNextItem || isThirdPreviousItem
+                    ? EXPANDED_BOX_PADDING * 3
+                    : isSecondNextItem || isSecondPreviousItem
+                        ? EXPANDED_BOX_PADDING * 2
+                        : isPreviousItem || isNextItem
+                            ? EXPANDED_BOX_PADDING
+                            : 0,
+            right: isFourthNextItem || isFourthPreviousItem
+                ? EXPANDED_BOX_PADDING * 4
+                : isThirdNextItem || isThirdPreviousItem
+                    ? EXPANDED_BOX_PADDING * 3
+                    : isSecondNextItem || isSecondPreviousItem
+                        ? EXPANDED_BOX_PADDING * 2
+                        : isPreviousItem || isNextItem
+                            ? EXPANDED_BOX_PADDING
+                            : 0,
           ),
           child: Center(
               child: Column(
