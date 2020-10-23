@@ -13,35 +13,16 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
         primarySwatch: Colors.blue,
+        backgroundColor: Colors.black,
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MyHomePage(),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+  MyHomePage({Key key}) : super(key: key);
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -50,28 +31,24 @@ class MyHomePage extends StatefulWidget {
 class Entry {
   int id;
   String domainName;
-  String ipAddress;
-  String hostName;
-  String dateTime;
-  String macAddress;
+  String ipAddress = '192.168.11.20';
+  String hostName = 'Frans_iP11pMx';
+  String dateTime = '13:04 EDT';
+  String macAddress = '80:32:04:5b:7a:c3';
 
   Entry(this.id, this.domainName);
 }
 
 class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
-  static const BOX_WIDTH = 125.0;
-  static const EXPANDED_BOX_HEIGHT = 250.0;
+  static const EXPANDED_BOX_HEIGHT = 300.0;
   static const NORMAL_BOX_HEIGHT = 75.0;
   static const NORMAL_BOX_PADDING = 4.0;
   static const EXPANDED_BOX_PADDING = 64.0;
 
   static const ANIMATION_CURVE = Curves.easeInOut;
   static const ANIMATION_DURATION = Duration(milliseconds: 350);
-
-  Animation<double> _primaryTextAnimation;
-  Animation<double> _secondaryTextAnimation;
-  AnimationController _primaryTextAnimationController;
-  AnimationController _secondaryTextAnimationController;
+  var DOMAIN_REGEX =
+      RegExp(r"^((?!-)[a-zA-Z0-9-]{0,62}[a-zA-Z0-9]\.)+([a-zA-Z]{2,63})$");
 
   ScrollController _scrollController;
   List<Entry> _scrollItems;
@@ -83,7 +60,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     'a1051.a.akamai.net',
     'news-edge.origin-apple.com.akadns.net',
     'r8---sn-gvbxgn-tm0e.googlevideo.com',
-    '1b_dns-sd__.udp.driessen',
+    '1b-dns-sd.udp.driessen',
     'mads.amazon-adsystem.com',
     'officeci-mauservice.azurewebsites.net',
     'app-measurement.com',
@@ -91,129 +68,83 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     'tpc.googlesyncidcation.com',
   ];
 
-  bool _animated = false;
   Map<int, double> _focusedListViewHeights;
 
-  bool _isFocused = false;
+  bool _isFocused = false; // TODO: this was good for one... now we have a lot.
 
   @override
   void initState() {
     super.initState();
 
+    // set up scroll items
     _scrollItems = [];
     for (var i = 0; i < 24; i++) {
       var randomInteger = Random().nextInt(_subdomains.length);
       _scrollItems.add(Entry(i, _subdomains[randomInteger]));
     }
 
-    // _focusedListViewHeights = Map<String, double>().addEntries(_scrollItems.map((element) => {'$element': NORMAL_BOX_HEIGHT }));
+    // setup db of Ids to Heights
     _focusedListViewHeights = Map<int, double>();
-
     _scrollItems.forEach((element) {
       _focusedListViewHeights.putIfAbsent(element.id, () => NORMAL_BOX_HEIGHT);
     });
 
-    setupBoxAnimations();
+    // setup our animation
     setupListAnimations();
   }
 
   setupListAnimations() {
-    _scrollController = ScrollController();
+    _scrollController = ScrollController(); // it was easy :)
   }
 
-  setupBoxAnimations() {
-    _primaryTextAnimationController = AnimationController(
-      duration: ANIMATION_DURATION,
-      vsync: this,
-    );
-    _primaryTextAnimation =
-        Tween(begin: NORMAL_BOX_HEIGHT, end: -NORMAL_BOX_HEIGHT).animate(
-      CurvedAnimation(
-        curve: ANIMATION_CURVE,
-        parent: _primaryTextAnimationController,
-      ),
-    );
+  Widget domainText(String text) {
+    Iterable<Match> matches = DOMAIN_REGEX.allMatches(text);
+    if (matches == null || matches.length == 0) {
+      print('Invalid domain: $text');
+      return Text('--');
+    }
 
-    _secondaryTextAnimationController = AnimationController(
-      duration: ANIMATION_DURATION,
-      vsync: this,
-    );
-    _secondaryTextAnimation =
-        Tween(begin: NORMAL_BOX_HEIGHT, end: 150.0).animate(
-      CurvedAnimation(
-          curve: ANIMATION_CURVE, parent: _secondaryTextAnimationController),
+    if (matches.elementAt(0).groupCount < 2) {
+      print(
+          'Invalid domain: $text, group count: ${matches.elementAt(0).groupCount}');
+      return Text(text);
+    }
+
+    var domain = matches.elementAt(0).group(1);
+    var tld = matches.elementAt(0).group(2);
+    var domainAndTld = '$domain$tld';
+
+    var prefix = matches.elementAt(0).group(0).replaceAll(domainAndTld, '');
+
+    print('PREFIX: ${prefix}');
+    print('DOMAIN: $domainAndTld');
+    print('---');
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.baseline,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(prefix,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w100,
+            )),
+        Text(domainAndTld,
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w200,
+            )),
+      ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    var middleContainer = Positioned(
-      left: 100,
-      top: 100,
-      child: Container(
-        width: BOX_WIDTH,
-        height: BOX_WIDTH,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.all(Radius.circular(8)),
-          color: Colors.red,
-        ),
-        child:
-            Center(child: Text('Hello', style: TextStyle(color: Colors.white))),
-      ),
-    );
+    Widget buildListViewChild(Entry entry, int index) {
+      bool isCurrentItem = _focusedListViewHeights[_scrollItems[index].id] ==
+          EXPANDED_BOX_HEIGHT;
 
-    var topLeftContainer = Positioned(
-      left: 50,
-      top: 50,
-      child: AnimatedBuilder(
-        animation: _primaryTextAnimation,
-        builder: (BuildContext context, child) {
-          return Transform.translate(
-              offset: Offset(
-                  _primaryTextAnimation.value, _primaryTextAnimation.value),
-              child: child);
-        },
-        child: Container(
-          width: BOX_WIDTH,
-          height: BOX_WIDTH,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.all(Radius.circular(8)),
-            color: Colors.green,
-          ),
-          child: Center(
-              child: Text('Hello', style: TextStyle(color: Colors.white))),
-        ),
-      ),
-    );
-
-    var bottomRightContainer = Positioned(
-      left: 50,
-      top: 50,
-      child: AnimatedBuilder(
-        animation: _secondaryTextAnimation,
-        builder: (BuildContext context, child) {
-          return Transform.translate(
-            offset: Offset(
-                _secondaryTextAnimation.value, _secondaryTextAnimation.value),
-            child: child,
-          );
-        },
-        child: Container(
-          width: BOX_WIDTH,
-          height: BOX_WIDTH,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.all(Radius.circular(8)),
-            color: Colors.blue,
-          ),
-          child: Center(
-              child: Text('Hello', style: TextStyle(color: Colors.white))),
-        ),
-      ),
-    );
-
-    Widget buildListViewChild(String childTitle, int index) {
       return GestureDetector(
-        onLongPress: () {
+        onTap: () {
           setState(() {
             _focusedListViewHeights.update(
                 _scrollItems[index].id,
@@ -221,86 +152,87 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                     _isFocused ? NORMAL_BOX_HEIGHT : EXPANDED_BOX_HEIGHT);
             _isFocused = !_isFocused;
           });
-
-          print('You pressed me: $childTitle');
         },
         child: AnimatedContainer(
-          duration: ANIMATION_DURATION,
+          duration: ANIMATION_DURATION * 0.8,
           curve: ANIMATION_CURVE,
           decoration: BoxDecoration(
-              color: Colors.amber,
-              border: Border.all(
-                  color: Colors.black, style: BorderStyle.solid, width: 1.0)),
+            color: Colors.amber,
+            // border: Border.all(
+            //     color: Colors.black, style: BorderStyle.solid, width: 1.0,
+            // )
+          ),
           height: _focusedListViewHeights[_scrollItems[index].id],
           margin: EdgeInsets.only(
-              top: _focusedListViewHeights[_scrollItems[index].id] ==
-                      EXPANDED_BOX_HEIGHT
-                  ? EXPANDED_BOX_PADDING
-                  : NORMAL_BOX_PADDING,
-              bottom: _focusedListViewHeights[_scrollItems[index].id] ==
-                      EXPANDED_BOX_HEIGHT
-                  ? EXPANDED_BOX_PADDING
-                  : NORMAL_BOX_PADDING),
-          child: Center(child: Text(childTitle)),
+              top: isCurrentItem ? EXPANDED_BOX_PADDING : NORMAL_BOX_PADDING,
+              bottom:
+                  isCurrentItem ? EXPANDED_BOX_PADDING : NORMAL_BOX_PADDING),
+          child: Center(
+              child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // IP ADDRESS
+              AnimatedDefaultTextStyle(
+                duration: ANIMATION_DURATION * 0.8,
+                curve: ANIMATION_CURVE,
+                style: TextStyle(fontSize: isCurrentItem ? 24.0 : 0.0),
+                child: Text(
+                  entry.ipAddress,
+                ),
+              ),
+              AnimatedContainer(
+                duration: ANIMATION_DURATION,
+                curve: ANIMATION_CURVE,
+                child: Container(
+                    padding: EdgeInsets.only(
+                      top: 16,
+                      bottom: 16,
+                    ),
+                    child: Center(
+                        child: AnimatedDefaultTextStyle(
+                      duration: ANIMATION_DURATION,
+                      curve: ANIMATION_CURVE,
+                      style: TextStyle(fontSize: isCurrentItem ? 28.0 : 18.0),
+                      child: domainText(entry.domainName),
+                    ))),
+              ),
+
+              // HOSTNAME
+              AnimatedDefaultTextStyle(
+                duration: ANIMATION_DURATION * 1.5,
+                curve: ANIMATION_CURVE,
+                style: TextStyle(
+                  fontSize: isCurrentItem ? 24.0 : 0.0,
+                ),
+                child: Text(entry.hostName),
+              ),
+              AnimatedDefaultTextStyle(
+                duration: ANIMATION_DURATION * 2,
+                curve: ANIMATION_CURVE,
+                style: TextStyle(
+                  fontSize: isCurrentItem ? 24.0 : 0.0,
+                ),
+                child: Text(entry.macAddress),
+              ),
+            ],
+          )),
         ),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
+      backgroundColor: Colors.black,
+      // appBar: AppBar(
+      //   title: Text(widget.title),
+      // ),
       body: ListView.builder(
         controller: _scrollController,
         itemCount: _scrollItems.length,
         itemBuilder: (BuildContext context, int idx) {
-          return buildListViewChild(_scrollItems[idx].domainName, idx);
+          return buildListViewChild(_scrollItems[idx], idx);
         },
       ),
-      // Column(
-      //   mainAxisAlignment: MainAxisAlignment.center,
-      //   crossAxisAlignment: CrossAxisAlignment.stretch,
-      //   children: [
-      // GestureDetector(
-      //   onTap: () {
-      //     _animate();
-      //   },
-      //   child: Container(
-      //     width: 350,
-      //     height: 350,
-      //     alignment: Alignment.center,
-      //     decoration: BoxDecoration(
-      //       border: Border.all(
-      //         color: Colors.black,
-      //         width: 1.0,
-      //         style: BorderStyle.solid,
-      //       ),
-      //     ),
-      //     child: Stack(
-      //       children: [
-      //         bottomRightContainer,
-      //         topLeftContainer,
-      //         middleContainer,
-      //       ],
-      //     ),
-      //   ),
-      // ),
-      // ],
-      // ),
     );
-  }
-
-  void _animate() {
-    if (_animated) {
-      _primaryTextAnimationController.reverse();
-      _secondaryTextAnimationController.reverse();
-    } else {
-      _secondaryTextAnimationController.forward();
-      _primaryTextAnimationController.forward();
-    }
-
-    setState(() {
-      _animated = !_animated;
-    });
   }
 }
