@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
@@ -142,22 +143,30 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           curve: ANIMATION_CURVE,
           duration: ANIMATION_DURATION,
           style: TextStyle(fontSize: smallFontSize),
-          child: Text(prefix,
-              style: TextStyle(
-                fontWeight: FontWeight.w100,
-                color: Colors.white,
-              )),
+          child: Text(
+            prefix,
+            style: TextStyle(
+              fontWeight: FontWeight.w100,
+              color: Colors.white,
+            ),
+          ),
         ),
         AnimatedDefaultTextStyle(
           curve: ANIMATION_CURVE,
           duration: ANIMATION_DURATION,
           style: TextStyle(fontSize: largeFontSize),
-          child: Text(
-            domainAndTld,
-            style: TextStyle(
-              fontWeight: FontWeight.w200,
-              color: Colors.white,
-            ),
+          child: Stack(
+            children: [
+              Container(
+                child: Text(
+                  domainAndTld,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w200,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ],
@@ -312,62 +321,113 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                               ? EXPANDED_BOX_PADDING * 4
                               : NORMAL_BOX_PADDING),
           child: Center(
-              child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // IP ADDRESS
-              // AnimatedDefaultTextStyle(
-              //   duration: ANIMATION_DURATION * 0.8,
-              //   curve: ANIMATION_CURVE,
-              //   style: TextStyle(fontSize: isCurrentItem ? 24.0 : 0.0),
-              //   child: Text(
-              //     entry.ipAddress,
-              //   ),
-              // ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // IP ADDRESS
+                // AnimatedDefaultTextStyle(
+                //   duration: ANIMATION_DURATION * 0.8,
+                //   curve: ANIMATION_CURVE,
+                //   style: TextStyle(fontSize: isCurrentItem ? 24.0 : 0.0),
+                //   child: Text(
+                //     entry.ipAddress,
+                //   ),
+                // ),
 
-              // DOMAIN NAME
-              AnimatedContainer(
-                duration: ANIMATION_DURATION,
-                curve: ANIMATION_CURVE,
-                padding: EdgeInsets.only(
-                    top: isSecondNextItem || isSecondPreviousItem ? 4 : 16,
-                    bottom: isSecondNextItem || isSecondPreviousItem ? 4 : 16),
-                child: Center(
-                  child: domainText(
-                    entry,
-                  ),
+                // DOMAIN NAME
+
+                Stack(
+                  children: [
+                    Center(
+                      child: domainText(entry),
+                    ),
+                    Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      child: ClipRect(
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(
+                            sigmaX: isNextItem || isPreviousItem
+                                ? 0.8
+                                : (isSecondNextItem ||
+                                        isSecondPreviousItem ||
+                                        isThirdNextItem ||
+                                        isThirdPreviousItem ||
+                                        isFourthNextItem ||
+                                        isFourthPreviousItem)
+                                    ? 2.0
+                                    : isCurrentItem
+                                        ? 0
+                                        : !_isFocused
+                                            ? 0
+                                            : 4.0,
+                            sigmaY: isNextItem || isPreviousItem
+                                ? 0.8
+                                : (isSecondNextItem ||
+                                        isSecondPreviousItem ||
+                                        isThirdNextItem ||
+                                        isThirdPreviousItem ||
+                                        isFourthNextItem ||
+                                        isFourthPreviousItem)
+                                    ? 2.0
+                                    : isCurrentItem
+                                        ? 0
+                                        : !_isFocused
+                                            ? 0
+                                            : 4.0,
+                          ),
+                          child: Container(
+                            width:
+                                2000, // width of container, but because of clipRect we're okay
+                            height:
+                                1000, // for some reason, height is not ingored by ClipRect... :(
+                            decoration: BoxDecoration(
+                              // border: Border.all(
+                              //   color: Colors.black,
+                              //   width: 5,
+                              //   style: BorderStyle.solid,
+                              // ),
+                              color: Colors.black.withOpacity(0.0),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
 
-              // HOSTNAME
-              // AnimatedDefaultTextStyle(
-              //   duration: ANIMATION_DURATION * 1.5,
-              //   curve: ANIMATION_CURVE,
-              //   style: TextStyle(fontSize: isCurrentItem ? 24.0 : 0.0),
-              //   child: Text(entry.hostName),
-              // ),
+                // HOSTNAME
+                // AnimatedDefaultTextStyle(
+                //   duration: ANIMATION_DURATION * 1.5,
+                //   curve: ANIMATION_CURVE,
+                //   style: TextStyle(fontSize: isCurrentItem ? 24.0 : 0.0),
+                //   child: Text(entry.hostName),
+                // ),
 
-              // MAC ADDRESS
-              // AnimatedDefaultTextStyle(
-              //   duration: ANIMATION_DURATION * 2,
-              //   curve: ANIMATION_CURVE,
-              //   style: TextStyle(
-              //     fontSize: isCurrentItem ? 24.0 : 0.0,
-              //   ),
-              //   child: Text(entry.macAddress),
-              // ),
+                // MAC ADDRESS
+                // AnimatedDefaultTextStyle(
+                //   duration: ANIMATION_DURATION * 2,
+                //   curve: ANIMATION_CURVE,
+                //   style: TextStyle(
+                //     fontSize: isCurrentItem ? 24.0 : 0.0,
+                //   ),
+                //   child: Text(entry.macAddress),
+                // ),
 
-              // JUST AN INDICATOR
-              // isPreviousItem
-              //     ? Text('previous')
-              //     : isNextItem
-              //         ? Text('next')
-              //         : isCurrentItem
-              //             ? Text('current')
-              //             : Text('--'),
-            ],
-          )),
+                // JUST AN INDICATOR
+                // isPreviousItem
+                //     ? Text('previous')
+                //     : isNextItem
+                //         ? Text('next')
+                //         : isCurrentItem
+                //             ? Text('current')
+                //             : Text('--'),
+              ],
+            ),
+          ),
         ),
       );
     }
