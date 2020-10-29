@@ -15,7 +15,6 @@ class MyApp extends StatelessWidget {
       title: 'Flutter Demo',
       theme: ThemeData(
         primarySwatch: Colors.blue,
-        backgroundColor: Colors.black,
       ),
       home: MyHomePage(),
     );
@@ -42,8 +41,8 @@ class Entry {
 }
 
 class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
-  static const EXPANDED_BOX_HEIGHT = 300.0;
-  static const NORMAL_BOX_HEIGHT = 100.0;
+  static const EXPANDED_BOX_HEIGHT = 150.0;
+  static const NORMAL_BOX_HEIGHT = 80.0;
   static const NORMAL_BOX_PADDING = 4.0;
   static const EXPANDED_BOX_PADDING = 16.0;
   static const ANIMATION_CURVE = Curves.easeInOut;
@@ -115,6 +114,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     // let's focus on secondary items
     var smallFontSize = _isFocused && _currentItem.id != entry.id ? 10.0 : 18.0;
     var largeFontSize = _isFocused && _currentItem.id != entry.id ? 14.0 : 28.0;
+    var multiplier = _isFocused && _currentItem.id == entry.id ? 1.1 : 1.0;
 
     Iterable<Match> matches = DOMAIN_REGEX.allMatches(text);
     if (matches == null || matches.length == 0) {
@@ -142,7 +142,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         AnimatedDefaultTextStyle(
           curve: ANIMATION_CURVE,
           duration: ANIMATION_DURATION,
-          style: TextStyle(fontSize: smallFontSize),
+          style: TextStyle(fontSize: smallFontSize * multiplier),
           child: Text(
             prefix,
             style: TextStyle(
@@ -154,19 +154,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         AnimatedDefaultTextStyle(
           curve: ANIMATION_CURVE,
           duration: ANIMATION_DURATION,
-          style: TextStyle(fontSize: largeFontSize),
-          child: Stack(
-            children: [
-              Container(
-                child: Text(
-                  domainAndTld,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w200,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ],
+          style: TextStyle(fontSize: largeFontSize * multiplier),
+          child: Text(
+            domainAndTld,
+            style: TextStyle(
+              fontWeight: FontWeight.w200,
+              color: Colors.white,
+            ),
           ),
         ),
       ],
@@ -256,26 +250,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             }
           });
         },
-        // onPanStart: (DragStartDetails details) {
-        //   bool isAlreadyFocused =
-        //       _focusedListViewHeights[index] == EXPANDED_BOX_HEIGHT;
-        //   if (isAlreadyFocused) {
-        //     setState(() {
-        //       // turn off all statuses
-        //       _focusedListViewHeights.update(
-        //           _scrollItems[index].id, (value) => NORMAL_BOX_HEIGHT);
-
-        //       _currentItem = null;
-        //       _nextItem = null;
-        //       _previousItem = null;
-        //     });
-        //   }
-        // },
         child: AnimatedContainer(
           duration: ANIMATION_DURATION * 1.8,
           curve: ANIMATION_CURVE,
           decoration: BoxDecoration(
-            color: entry.isBlocked ? Colors.red : Colors.green,
+            color: entry.isBlocked
+                ? Colors.red.withOpacity(_isFocused ? 0.4 : 0.9)
+                : Colors.green.withOpacity(_isFocused ? 0.4 : 0.9),
             // border: Border.all(
             //     color: Colors.black, style: BorderStyle.solid, width: 1.0,
             // )
@@ -295,9 +276,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                       : NORMAL_BOX_HEIGHT,
           margin: EdgeInsets.only(
               top:
-                  NORMAL_BOX_PADDING, // isCurrentItem ? EXPANDED_BOX_PADDING : NORMAL_BOX_PADDING,
+                  isCurrentItem ? EXPANDED_BOX_PADDING * 6 : NORMAL_BOX_PADDING,
               bottom:
-                  NORMAL_BOX_PADDING, // isCurrentItem ? EXPANDED_BOX_PADDING : NORMAL_BOX_PADDING,
+                  isCurrentItem ? EXPANDED_BOX_PADDING * 6 : NORMAL_BOX_PADDING,
               left: isPreviousItem || isNextItem
                   ? EXPANDED_BOX_PADDING
                   : isSecondNextItem || isSecondPreviousItem
@@ -320,120 +301,202 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                                   (_isFocused && !isCurrentItem)
                               ? EXPANDED_BOX_PADDING * 4
                               : NORMAL_BOX_PADDING),
-          child: Center(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // IP ADDRESS
-                // AnimatedDefaultTextStyle(
-                //   duration: ANIMATION_DURATION * 0.8,
-                //   curve: ANIMATION_CURVE,
-                //   style: TextStyle(fontSize: isCurrentItem ? 24.0 : 0.0),
-                //   child: Text(
-                //     entry.ipAddress,
-                //   ),
-                // ),
-
-                // DOMAIN NAME
-
-                Stack(
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              // the main box contents
+              Center(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Center(
-                      child: domainText(entry),
-                    ),
-                    Positioned(
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      child: ClipRect(
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(
-                            sigmaX: isNextItem || isPreviousItem
-                                ? 0.8
-                                : (isSecondNextItem ||
-                                        isSecondPreviousItem ||
-                                        isThirdNextItem ||
-                                        isThirdPreviousItem ||
-                                        isFourthNextItem ||
-                                        isFourthPreviousItem)
-                                    ? 2.0
-                                    : isCurrentItem
-                                        ? 0
-                                        : !_isFocused
+                    // IP ADDRESS
+
+                    // DOMAIN NAME
+                    Stack(
+                      children: [
+                        Center(
+                          child: domainText(entry),
+                        ),
+                        Positioned(
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          child: ClipRect(
+                            child: BackdropFilter(
+                              filter: ImageFilter.blur(
+                                sigmaX: isNextItem || isPreviousItem
+                                    ? 1.8
+                                    : (isSecondNextItem ||
+                                            isSecondPreviousItem ||
+                                            isThirdNextItem ||
+                                            isThirdPreviousItem ||
+                                            isFourthNextItem ||
+                                            isFourthPreviousItem)
+                                        ? 3.0
+                                        : isCurrentItem
                                             ? 0
-                                            : 4.0,
-                            sigmaY: isNextItem || isPreviousItem
-                                ? 0.8
-                                : (isSecondNextItem ||
-                                        isSecondPreviousItem ||
-                                        isThirdNextItem ||
-                                        isThirdPreviousItem ||
-                                        isFourthNextItem ||
-                                        isFourthPreviousItem)
-                                    ? 2.0
-                                    : isCurrentItem
-                                        ? 0
-                                        : !_isFocused
+                                            : !_isFocused
+                                                ? 0
+                                                : 6.0,
+                                sigmaY: isNextItem || isPreviousItem
+                                    ? 1.8
+                                    : (isSecondNextItem ||
+                                            isSecondPreviousItem ||
+                                            isThirdNextItem ||
+                                            isThirdPreviousItem ||
+                                            isFourthNextItem ||
+                                            isFourthPreviousItem)
+                                        ? 3.0
+                                        : isCurrentItem
                                             ? 0
-                                            : 4.0,
-                          ),
-                          child: Container(
-                            width:
-                                2000, // width of container, but because of clipRect we're okay
-                            height:
-                                1000, // for some reason, height is not ingored by ClipRect... :(
-                            decoration: BoxDecoration(
-                              // border: Border.all(
-                              //   color: Colors.black,
-                              //   width: 5,
-                              //   style: BorderStyle.solid,
-                              // ),
-                              color: Colors.black.withOpacity(0.0),
+                                            : !_isFocused
+                                                ? 0
+                                                : 6.0,
+                              ),
+                              child: Container(
+                                width:
+                                    2000, // width of container, but because of clipRect we're okay
+                                height:
+                                    1000, // for some reason, height is not ingored by ClipRect... :(
+                                decoration: BoxDecoration(
+                                  // border: Border.all(
+                                  //   color: Colors.black,
+                                  //   width: 5,
+                                  //   style: BorderStyle.solid,
+                                  // ),
+                                  color: Colors.white.withOpacity(0.0),
+                                ),
+                              ),
                             ),
                           ),
                         ),
-                      ),
+                      ],
                     ),
                   ],
                 ),
+              ),
 
-                // HOSTNAME
-                // AnimatedDefaultTextStyle(
-                //   duration: ANIMATION_DURATION * 1.5,
-                //   curve: ANIMATION_CURVE,
-                //   style: TextStyle(fontSize: isCurrentItem ? 24.0 : 0.0),
-                //   child: Text(entry.hostName),
-                // ),
+              // IP ADDRESS
+              AnimatedPositioned(
+                // alignment: isCurrentItem ? Alignment.topLeft : Alignment.center,
+                top: isCurrentItem
+                    ? -20.0 // outside the box
+                    : NORMAL_BOX_HEIGHT / 2, // somewhere in the center
+                left: isCurrentItem
+                    ? 8 // left edge
+                    : 200, // somewhere in the center
+                duration: ANIMATION_DURATION * 1.8,
+                curve: ANIMATION_CURVE,
+                child: Container(
+                  decoration: BoxDecoration(
+                      border: Border.all(
+                          color: Colors.black,
+                          style: BorderStyle.none,
+                          width: 3.0)),
+                  child: AnimatedDefaultTextStyle(
+                    duration: ANIMATION_DURATION * 0.8,
+                    curve: ANIMATION_CURVE,
+                    style: TextStyle(fontSize: isCurrentItem ? 24.0 : 0.0),
+                    child: Text(
+                      entry.ipAddress,
+                    ),
+                  ),
+                ),
+              ),
 
-                // MAC ADDRESS
-                // AnimatedDefaultTextStyle(
-                //   duration: ANIMATION_DURATION * 2,
-                //   curve: ANIMATION_CURVE,
-                //   style: TextStyle(
-                //     fontSize: isCurrentItem ? 24.0 : 0.0,
-                //   ),
-                //   child: Text(entry.macAddress),
-                // ),
+              // HOST NAME
+              AnimatedPositioned(
+                // alignment: isCurrentItem ? Alignment.topLeft : Alignment.center,
+                bottom: isCurrentItem
+                    ? -20.0 // outside the box
+                    : NORMAL_BOX_HEIGHT / 2, // somewhere in the center
+                left: isCurrentItem
+                    ? 8 // left edge
+                    : 200, // somewhere in the center
+                duration: ANIMATION_DURATION * 1.4,
+                curve: ANIMATION_CURVE,
+                child: Container(
+                  decoration: BoxDecoration(
+                      border: Border.all(
+                          color: Colors.black,
+                          style: BorderStyle.none,
+                          width: 3.0)),
+                  child: AnimatedDefaultTextStyle(
+                    duration: ANIMATION_DURATION * 0.8,
+                    curve: ANIMATION_CURVE,
+                    style: TextStyle(fontSize: isCurrentItem ? 28.0 : 0.0),
+                    child: Text(
+                      entry.hostName,
+                    ),
+                  ),
+                ),
+              ),
 
-                // JUST AN INDICATOR
-                // isPreviousItem
-                //     ? Text('previous')
-                //     : isNextItem
-                //         ? Text('next')
-                //         : isCurrentItem
-                //             ? Text('current')
-                //             : Text('--'),
-              ],
-            ),
+              // MAC ADDRESS
+              AnimatedPositioned(
+                // alignment: isCurrentItem ? Alignment.topLeft : Alignment.center,
+                bottom: isCurrentItem
+                    ? -40.0 // outside the box, under the hostname
+                    : NORMAL_BOX_HEIGHT / 2, // somewhere in the center
+                left: isCurrentItem
+                    ? 12 // left edge, but slightly more margin than the host name
+                    : 200, // somewhere in the center
+                duration: ANIMATION_DURATION * 1.6,
+                curve: ANIMATION_CURVE,
+                child: Container(
+                  decoration: BoxDecoration(
+                      border: Border.all(
+                          color: Colors.black,
+                          style: BorderStyle.none,
+                          width: 3.0)),
+                  child: AnimatedDefaultTextStyle(
+                    duration: ANIMATION_DURATION * 0.8,
+                    curve: ANIMATION_CURVE,
+                    style: TextStyle(fontSize: isCurrentItem ? 18.0 : 0.0),
+                    child: Text(
+                      entry.macAddress,
+                    ),
+                  ),
+                ),
+              ),
+
+              // TIME STAMP
+              AnimatedPositioned(
+                // alignment: isCurrentItem ? Alignment.topLeft : Alignment.center,
+                bottom: isCurrentItem
+                    ? 8.0 // outside the box, under the hostname
+                    : NORMAL_BOX_HEIGHT / 2, // somewhere in the center
+                right: isCurrentItem
+                    ? 8 // left edge
+                    : 200, // somewhere in the center
+                duration: ANIMATION_DURATION * 2.6,
+                curve: ANIMATION_CURVE,
+                child: Container(
+                  decoration: BoxDecoration(
+                      border: Border.all(
+                          color: Colors.black,
+                          style: BorderStyle.none,
+                          width: 3.0)),
+                  child: AnimatedDefaultTextStyle(
+                    duration: ANIMATION_DURATION * 0.8,
+                    curve: ANIMATION_CURVE,
+                    style: TextStyle(fontSize: isCurrentItem ? 12.0 : 0.0),
+                    child: Text(
+                      entry.dateTime,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       );
     }
 
     return Scaffold(
-      // backgroundColor: Colors.black,
+      backgroundColor: Colors.black,
       // appBar: AppBar(
       //   title: Text(widget.title),
       // ),
