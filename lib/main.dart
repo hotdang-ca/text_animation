@@ -67,17 +67,17 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   List<String> _subdomains = [
     'sub1.donkeykong.com',
-    'securepubads.g.doubleclick.net',
+    // 'securepubads.g.doubleclick.net',
     'a1051.b.akamai.net',
     'a1051.a.akamai.net',
-    'news-edge.origin-apple.com.akadns.net',
-    'r8---sn-gvbxgn-tm0e.googlevideo.com',
+    // 'news-edge.origin-apple.com.akadns.net',
+    // 'r8---sn-gvbxgn-tm0e.googlevideo.com',
     '1b-dns-sd.udp.driessen',
     'mads.amazon-adsystem.com',
-    'officeci-mauservice.azurewebsites.net',
+    // 'officeci-mauservice.azurewebsites.net',
     'app-measurement.com',
-    'fransnet-0bdvxlvgg.2my.network',
-    'tpc.googlesyncidcation.com',
+    // 'fransnet-0bdvxlvgg.2my.network',
+    // 'tpc.googlesyncidcation.com',
   ];
 
   Map<int, double> _focusedListViewHeights;
@@ -310,68 +310,67 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // IP ADDRESS
-
                     // DOMAIN NAME
                     Stack(
                       children: [
                         Center(
                           child: domainText(entry),
                         ),
-                        Positioned(
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          bottom: 0,
-                          child: ClipRect(
-                            child: BackdropFilter(
-                              filter: ImageFilter.blur(
-                                sigmaX: isNextItem || isPreviousItem
-                                    ? 1.8
-                                    : (isSecondNextItem ||
-                                            isSecondPreviousItem ||
-                                            isThirdNextItem ||
-                                            isThirdPreviousItem ||
-                                            isFourthNextItem ||
-                                            isFourthPreviousItem)
-                                        ? 3.0
-                                        : isCurrentItem
-                                            ? 0
-                                            : !_isFocused
-                                                ? 0
-                                                : 6.0,
-                                sigmaY: isNextItem || isPreviousItem
-                                    ? 1.8
-                                    : (isSecondNextItem ||
-                                            isSecondPreviousItem ||
-                                            isThirdNextItem ||
-                                            isThirdPreviousItem ||
-                                            isFourthNextItem ||
-                                            isFourthPreviousItem)
-                                        ? 3.0
-                                        : isCurrentItem
-                                            ? 0
-                                            : !_isFocused
-                                                ? 0
-                                                : 6.0,
-                              ),
-                              child: Container(
-                                width:
-                                    2000, // width of container, but because of clipRect we're okay
-                                height:
-                                    1000, // for some reason, height is not ingored by ClipRect... :(
-                                decoration: BoxDecoration(
-                                  // border: Border.all(
-                                  //   color: Colors.black,
-                                  //   width: 5,
-                                  //   style: BorderStyle.solid,
-                                  // ),
-                                  color: Colors.white.withOpacity(0.0),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
+                        // BLUR OF TEXT... try to figure this out differently...
+                        // Positioned(
+                        //   top: 0,
+                        //   left: 0,
+                        //   right: 0,
+                        //   bottom: 0,
+                        //   child: ClipRect(
+                        //     child: BackdropFilter(
+                        //       filter: ImageFilter.blur(
+                        //         sigmaX: isNextItem || isPreviousItem
+                        //             ? 1.8
+                        //             : (isSecondNextItem ||
+                        //                     isSecondPreviousItem ||
+                        //                     isThirdNextItem ||
+                        //                     isThirdPreviousItem ||
+                        //                     isFourthNextItem ||
+                        //                     isFourthPreviousItem)
+                        //                 ? 3.0
+                        //                 : isCurrentItem
+                        //                     ? 0
+                        //                     : !_isFocused
+                        //                         ? 0
+                        //                         : 6.0,
+                        //         sigmaY: isNextItem || isPreviousItem
+                        //             ? 1.8
+                        //             : (isSecondNextItem ||
+                        //                     isSecondPreviousItem ||
+                        //                     isThirdNextItem ||
+                        //                     isThirdPreviousItem ||
+                        //                     isFourthNextItem ||
+                        //                     isFourthPreviousItem)
+                        //                 ? 3.0
+                        //                 : isCurrentItem
+                        //                     ? 0
+                        //                     : !_isFocused
+                        //                         ? 0
+                        //                         : 6.0,
+                        //       ),
+                        //       child: Container(
+                        //         width:
+                        //             2000, // width of container, but because of clipRect we're okay
+                        //         height:
+                        //             1000, // for some reason, height is not ingored by ClipRect... :(
+                        //         decoration: BoxDecoration(
+                        //           // border: Border.all(
+                        //           //   color: Colors.black,
+                        //           //   width: 5,
+                        //           //   style: BorderStyle.solid,
+                        //           // ),
+                        //           color: Colors.white.withOpacity(0.0),
+                        //         ),
+                        //       ),
+                        //     ),
+                        //   ),
+                        // ),
                       ],
                     ),
                   ],
