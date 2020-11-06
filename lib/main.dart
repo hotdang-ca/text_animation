@@ -42,7 +42,7 @@ class Entry {
 
 class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   static const EXPANDED_BOX_HEIGHT = 150.0;
-  static const NORMAL_BOX_HEIGHT = 80.0;
+  static const NORMAL_BOX_HEIGHT = 60.0;
   static const NORMAL_BOX_PADDING = 4.0;
   static const EXPANDED_BOX_PADDING = 16.0;
   static const ANIMATION_CURVE = Curves.easeInOut;
@@ -67,17 +67,17 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   List<String> _subdomains = [
     'sub1.donkeykong.com',
-    // 'securepubads.g.doubleclick.net',
+    'securepubads.g.doubleclick.net',
     'a1051.b.akamai.net',
     'a1051.a.akamai.net',
-    // 'news-edge.origin-apple.com.akadns.net',
-    // 'r8---sn-gvbxgn-tm0e.googlevideo.com',
+    'news-edge.origin-apple.com.akadns.net',
+    'r8---sn-gvbxgn-tm0e.googlevideo.com',
     '1b-dns-sd.udp.driessen',
     'mads.amazon-adsystem.com',
-    // 'officeci-mauservice.azurewebsites.net',
+    'officeci-mauservice.azurewebsites.net',
     'app-measurement.com',
-    // 'fransnet-0bdvxlvgg.2my.network',
-    // 'tpc.googlesyncidcation.com',
+    'fransnet-0bdvxlvgg.2my.network',
+    'tpc.googlesyncidcation.com',
   ];
 
   Map<int, double> _focusedListViewHeights;
@@ -112,8 +112,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     String text = entry.domainName;
 
     // let's focus on secondary items
-    var smallFontSize = _isFocused && _currentItem.id != entry.id ? 10.0 : 18.0;
-    var largeFontSize = _isFocused && _currentItem.id != entry.id ? 14.0 : 28.0;
+    var smallFontSize = _isFocused && _currentItem.id != entry.id ? 10.0 : 12.0;
+    var largeFontSize = _isFocused && _currentItem.id != entry.id ? 14.0 : 24.0;
     var multiplier = _isFocused && _currentItem.id == entry.id ? 1.1 : 1.0;
 
     Iterable<Match> matches = DOMAIN_REGEX.allMatches(text);
@@ -132,8 +132,41 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     var tld = matches.elementAt(0).group(2);
     var domainAndTld = '$domain$tld';
 
-    // var fontSize = _
     var prefix = matches.elementAt(0).group(0).replaceAll(domainAndTld, '');
+
+    bool isPrefixLong = prefix.length > 15;
+
+    if (isPrefixLong) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          AnimatedDefaultTextStyle(
+            curve: ANIMATION_CURVE,
+            duration: ANIMATION_DURATION,
+            style: TextStyle(fontSize: (smallFontSize - 2) * multiplier),
+            child: Text(
+              prefix,
+              style: TextStyle(
+                fontWeight: FontWeight.w100,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          AnimatedDefaultTextStyle(
+            curve: ANIMATION_CURVE,
+            duration: ANIMATION_DURATION,
+            style: TextStyle(fontSize: largeFontSize * multiplier),
+            child: Text(
+              domainAndTld,
+              style: TextStyle(
+                fontWeight: FontWeight.w200,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ],
+      );
+    }
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -201,8 +234,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       isFourthNextItem = _fourthNextItem != null &&
           _scrollItems[index].id == _fourthNextItem.id;
 
-      print('is focused: $_isFocused');
-
       return GestureDetector(
         onTap: () {
           setState(() {
@@ -254,9 +285,18 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           duration: ANIMATION_DURATION * 1.8,
           curve: ANIMATION_CURVE,
           decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(isCurrentItem ? 10 : 4),
             color: entry.isBlocked
-                ? Colors.red.withOpacity(_isFocused ? 0.4 : 0.9)
-                : Colors.green.withOpacity(_isFocused ? 0.4 : 0.9),
+                ? Colors.red.withOpacity(isCurrentItem
+                    ? 0.7
+                    : _isFocused
+                        ? 0.4
+                        : 0.7)
+                : Colors.green.withOpacity(isCurrentItem
+                    ? 0.7
+                    : _isFocused
+                        ? 0.4
+                        : 0.7),
             // border: Border.all(
             //     color: Colors.black, style: BorderStyle.solid, width: 1.0,
             // )
@@ -317,60 +357,60 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                           child: domainText(entry),
                         ),
                         // BLUR OF TEXT... try to figure this out differently...
-                        // Positioned(
-                        //   top: 0,
-                        //   left: 0,
-                        //   right: 0,
-                        //   bottom: 0,
-                        //   child: ClipRect(
-                        //     child: BackdropFilter(
-                        //       filter: ImageFilter.blur(
-                        //         sigmaX: isNextItem || isPreviousItem
-                        //             ? 1.8
-                        //             : (isSecondNextItem ||
-                        //                     isSecondPreviousItem ||
-                        //                     isThirdNextItem ||
-                        //                     isThirdPreviousItem ||
-                        //                     isFourthNextItem ||
-                        //                     isFourthPreviousItem)
-                        //                 ? 3.0
-                        //                 : isCurrentItem
-                        //                     ? 0
-                        //                     : !_isFocused
-                        //                         ? 0
-                        //                         : 6.0,
-                        //         sigmaY: isNextItem || isPreviousItem
-                        //             ? 1.8
-                        //             : (isSecondNextItem ||
-                        //                     isSecondPreviousItem ||
-                        //                     isThirdNextItem ||
-                        //                     isThirdPreviousItem ||
-                        //                     isFourthNextItem ||
-                        //                     isFourthPreviousItem)
-                        //                 ? 3.0
-                        //                 : isCurrentItem
-                        //                     ? 0
-                        //                     : !_isFocused
-                        //                         ? 0
-                        //                         : 6.0,
-                        //       ),
-                        //       child: Container(
-                        //         width:
-                        //             2000, // width of container, but because of clipRect we're okay
-                        //         height:
-                        //             1000, // for some reason, height is not ingored by ClipRect... :(
-                        //         decoration: BoxDecoration(
-                        //           // border: Border.all(
-                        //           //   color: Colors.black,
-                        //           //   width: 5,
-                        //           //   style: BorderStyle.solid,
-                        //           // ),
-                        //           color: Colors.white.withOpacity(0.0),
-                        //         ),
-                        //       ),
-                        //     ),
-                        //   ),
-                        // ),
+                        Positioned(
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          child: ClipRect(
+                            child: BackdropFilter(
+                              filter: ImageFilter.blur(
+                                sigmaX: isNextItem || isPreviousItem
+                                    ? 1.8
+                                    : (isSecondNextItem ||
+                                            isSecondPreviousItem ||
+                                            isThirdNextItem ||
+                                            isThirdPreviousItem ||
+                                            isFourthNextItem ||
+                                            isFourthPreviousItem)
+                                        ? 3.0
+                                        : isCurrentItem
+                                            ? 0
+                                            : !_isFocused
+                                                ? 0
+                                                : 4.0,
+                                sigmaY: isNextItem || isPreviousItem
+                                    ? 1.8
+                                    : (isSecondNextItem ||
+                                            isSecondPreviousItem ||
+                                            isThirdNextItem ||
+                                            isThirdPreviousItem ||
+                                            isFourthNextItem ||
+                                            isFourthPreviousItem)
+                                        ? 3.0
+                                        : isCurrentItem
+                                            ? 0
+                                            : !_isFocused
+                                                ? 0
+                                                : 4.0,
+                              ),
+                              child: Container(
+                                width:
+                                    2000, // width of container, but because of clipRect we're okay
+                                height:
+                                    1000, // for some reason, height is not ingored by ClipRect... :(
+                                decoration: BoxDecoration(
+                                  // border: Border.all(
+                                  //   color: Colors.black,
+                                  //   width: 5,
+                                  //   style: BorderStyle.solid,
+                                  // ),
+                                  color: Colors.white.withOpacity(0.0),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ],
