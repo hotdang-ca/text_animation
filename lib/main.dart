@@ -48,10 +48,15 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   static const ANIMATION_CURVE = Curves.easeInOut;
   static const ANIMATION_DURATION = Duration(milliseconds: 350);
 
+  Animation<double> _toolsAnimation;
+  AnimationController _toolsAnimationController;
+
   var DOMAIN_REGEX =
       RegExp(r"^((?!-)[a-zA-Z0-9-]{0,62}[a-zA-Z0-9]\.)+([a-zA-Z]{2,63})$");
 
   bool _isFocused = false;
+  bool _isToolsVisible = false;
+
   ScrollController _scrollController;
   List<Entry> _scrollItems;
   Entry _currentItem;
@@ -102,19 +107,55 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
     // setup our animation
     setupListAnimations();
+    setupToolsAnimation();
   }
 
-  setupListAnimations() {
+  void setupListAnimations() {
     _scrollController = ScrollController(); // it was easy :)
   }
 
-  Widget domainText(Entry entry) {
+  void setupToolsAnimation() {
+    _toolsAnimationController = AnimationController(
+      duration: Duration(seconds: 1),
+      vsync: this,
+    );
+
+    _toolsAnimation = Tween(
+      begin: 12.0,
+      end: 96.0,
+    ).animate(CurvedAnimation(
+      parent: _toolsAnimationController,
+      curve: Curves.easeIn,
+    ));
+
+    _toolsAnimationController.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        setState(() {
+          _isToolsVisible = true;
+        });
+      } else if (status == AnimationStatus.dismissed) {
+        setState(() {
+          _isToolsVisible = false;
+        });
+      }
+    });
+  }
+
+  Widget domainText(Entry entry, bool isSecondary) {
     String text = entry.domainName;
 
     // let's focus on secondary items
     var smallFontSize = _isFocused && _currentItem.id != entry.id ? 10.0 : 12.0;
     var largeFontSize = _isFocused && _currentItem.id != entry.id ? 14.0 : 24.0;
     var multiplier = _isFocused && _currentItem.id == entry.id ? 1.1 : 1.0;
+
+    int alpha = 255;
+
+    if (_isFocused) {
+      if (_currentItem.id != entry.id) {
+        alpha = isSecondary ? 152 : 0;
+      }
+    }
 
     Iterable<Match> matches = DOMAIN_REGEX.allMatches(text);
     if (matches == null || matches.length == 0) {
@@ -148,7 +189,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               prefix,
               style: TextStyle(
                 fontWeight: FontWeight.w100,
-                color: Colors.white,
+                color: Colors.white.withAlpha(alpha),
               ),
             ),
           ),
@@ -160,7 +201,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               domainAndTld,
               style: TextStyle(
                 fontWeight: FontWeight.w200,
-                color: Colors.white,
+                color: Colors.white.withAlpha(alpha),
               ),
             ),
           ),
@@ -180,7 +221,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             prefix,
             style: TextStyle(
               fontWeight: FontWeight.w100,
-              color: Colors.white,
+              color: Colors.white.withAlpha(alpha),
             ),
           ),
         ),
@@ -192,7 +233,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             domainAndTld,
             style: TextStyle(
               fontWeight: FontWeight.w200,
-              color: Colors.white,
+              color: Colors.white.withAlpha(alpha),
             ),
           ),
         ),
@@ -234,6 +275,15 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       isFourthNextItem = _fourthNextItem != null &&
           _scrollItems[index].id == _fourthNextItem.id;
 
+      bool isSecondary = isNextItem ||
+          isSecondNextItem ||
+          isThirdNextItem ||
+          isFourthNextItem ||
+          isPreviousItem ||
+          isSecondPreviousItem ||
+          isThirdPreviousItem ||
+          isFourthPreviousItem;
+
       return GestureDetector(
         onTap: () {
           setState(() {
@@ -257,8 +307,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               _thirdPreviousItem = null;
               _fourthNextItem = null;
               _fourthPreviousItem = null;
+
+              _toolsAnimationController.reverse();
             } else {
               _isFocused = true;
+
               _currentItem = _scrollItems[index];
 
               _nextItem = _scrollItems.length > index + 1
@@ -278,6 +331,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               _secondPreviousItem = index > 1 ? _scrollItems[index - 2] : null;
               _thirdPreviousItem = index > 2 ? _scrollItems[index - 3] : null;
               _fourthPreviousItem = index > 3 ? _scrollItems[index - 4] : null;
+
+              _toolsAnimationController.reset();
+              _toolsAnimationController.forward();
             }
           });
         },
@@ -285,17 +341,21 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           duration: ANIMATION_DURATION * 1.8,
           curve: ANIMATION_CURVE,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(isCurrentItem ? 10 : 4),
+            borderRadius: BorderRadius.circular(isCurrentItem ? 6 : 4),
             color: entry.isBlocked
-                ? Colors.red.withOpacity(isCurrentItem
+                ? Color.fromARGB(255, 255, 62, 0).withOpacity(isCurrentItem
                     ? 0.7
                     : _isFocused
-                        ? 0.4
+                        ? (isSecondary)
+                            ? 0.4
+                            : 0.0
                         : 0.7)
                 : Colors.green.withOpacity(isCurrentItem
                     ? 0.7
                     : _isFocused
-                        ? 0.4
+                        ? isSecondary
+                            ? 0.4
+                            : 0.0
                         : 0.7),
             // border: Border.all(
             //     color: Colors.black, style: BorderStyle.solid, width: 1.0,
@@ -354,63 +414,63 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                     Stack(
                       children: [
                         Center(
-                          child: domainText(entry),
+                          child: domainText(entry, isSecondary),
                         ),
                         // BLUR OF TEXT... try to figure this out differently...
-                        Positioned(
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          bottom: 0,
-                          child: ClipRect(
-                            child: BackdropFilter(
-                              filter: ImageFilter.blur(
-                                sigmaX: isNextItem || isPreviousItem
-                                    ? 1.8
-                                    : (isSecondNextItem ||
-                                            isSecondPreviousItem ||
-                                            isThirdNextItem ||
-                                            isThirdPreviousItem ||
-                                            isFourthNextItem ||
-                                            isFourthPreviousItem)
-                                        ? 3.0
-                                        : isCurrentItem
-                                            ? 0
-                                            : !_isFocused
-                                                ? 0
-                                                : 4.0,
-                                sigmaY: isNextItem || isPreviousItem
-                                    ? 1.8
-                                    : (isSecondNextItem ||
-                                            isSecondPreviousItem ||
-                                            isThirdNextItem ||
-                                            isThirdPreviousItem ||
-                                            isFourthNextItem ||
-                                            isFourthPreviousItem)
-                                        ? 3.0
-                                        : isCurrentItem
-                                            ? 0
-                                            : !_isFocused
-                                                ? 0
-                                                : 4.0,
-                              ),
-                              child: Container(
-                                width:
-                                    2000, // width of container, but because of clipRect we're okay
-                                height:
-                                    1000, // for some reason, height is not ingored by ClipRect... :(
-                                decoration: BoxDecoration(
-                                  // border: Border.all(
-                                  //   color: Colors.black,
-                                  //   width: 5,
-                                  //   style: BorderStyle.solid,
-                                  // ),
-                                  color: Colors.white.withOpacity(0.0),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
+                        // Positioned(
+                        //   top: 0,
+                        //   left: 0,
+                        //   right: 0,
+                        //   bottom: 0,
+                        //   child: ClipRect(
+                        //     child: BackdropFilter(
+                        //       filter: ImageFilter.blur(
+                        //         sigmaX: isNextItem || isPreviousItem
+                        //             ? 1.8
+                        //             : (isSecondNextItem ||
+                        //                     isSecondPreviousItem ||
+                        //                     isThirdNextItem ||
+                        //                     isThirdPreviousItem ||
+                        //                     isFourthNextItem ||
+                        //                     isFourthPreviousItem)
+                        //                 ? 3.0
+                        //                 : isCurrentItem
+                        //                     ? 0
+                        //                     : !_isFocused
+                        //                         ? 0
+                        //                         : 4.0,
+                        //         sigmaY: isNextItem || isPreviousItem
+                        //             ? 1.8
+                        //             : (isSecondNextItem ||
+                        //                     isSecondPreviousItem ||
+                        //                     isThirdNextItem ||
+                        //                     isThirdPreviousItem ||
+                        //                     isFourthNextItem ||
+                        //                     isFourthPreviousItem)
+                        //                 ? 3.0
+                        //                 : isCurrentItem
+                        //                     ? 0
+                        //                     : !_isFocused
+                        //                         ? 0
+                        //                         : 4.0,
+                        //       ),
+                        //       child: Container(
+                        //         width:
+                        //             2000, // width of container, but because of clipRect we're okay
+                        //         height:
+                        //             1000, // for some reason, height is not ingored by ClipRect... :(
+                        //         decoration: BoxDecoration(
+                        //           // border: Border.all(
+                        //           //   color: Colors.black,
+                        //           //   width: 5,
+                        //           //   style: BorderStyle.solid,
+                        //           // ),
+                        //           color: Colors.white.withOpacity(0.0),
+                        //         ),
+                        //       ),
+                        //     ),
+                        //   ),
+                        // ),
                       ],
                     ),
                   ],
@@ -539,12 +599,57 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       // appBar: AppBar(
       //   title: Text(widget.title),
       // ),
-      body: ListView.builder(
-        controller: _scrollController,
-        itemCount: _scrollItems.length,
-        itemBuilder: (BuildContext context, int idx) {
-          return buildListViewChild(_scrollItems[idx], idx);
-        },
+      body: Stack(
+        children: [
+          ListView.builder(
+            controller: _scrollController,
+            itemCount: _scrollItems.length,
+            itemBuilder: (BuildContext context, int idx) {
+              return buildListViewChild(_scrollItems[idx], idx);
+            },
+          ),
+          AnimatedBuilder(
+            animation: _toolsAnimation,
+            builder: (BuildContext context, Widget child) {
+              return Positioned(
+                bottom: _toolsAnimation.value,
+                left: 0,
+                right: 0,
+                child: child,
+              );
+            },
+            child: Column(
+              children: [
+                Image.asset(
+                  'images/adam_logo.png',
+                  height: 124,
+                  colorBlendMode: BlendMode.darken,
+                  alignment: Alignment.bottomCenter,
+                ),
+                Column(
+                  children: [
+                    Text(
+                      _isToolsVisible ? 'Blocked' : '',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w100,
+                        fontSize: 48,
+                      ),
+                    ),
+                    Text(
+                      _isToolsVisible ? 'WL - Not on list' : '',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w100,
+                        fontSize: 18,
+                      ),
+                    ),
+                  ],
+                )
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
